@@ -16,7 +16,6 @@ local Config = {
     AimPart = "HumanoidRootPart",
     TeamCheck = true,
     VisibilityCheck = false,
-    SmoothAimEnabled = true,
     FOVEnabled = false,
     FOVSize = 250,
     FOVSides = 64,
@@ -136,7 +135,7 @@ end
 -- Function to create rainbow text
 local function CreateRainbowText()
     RainbowText = Drawing.new("Text")
-    RainbowText.Text = "PROJECT BUST EXTERNAL"
+    RainbowText.Text = "Project Bust Script"
     RainbowText.Size = 24
     RainbowText.Center = true
     RainbowText.Outline = true
@@ -206,14 +205,9 @@ RunService.RenderStepped:Connect(function(deltaTime)
         
         local cameraPos = Camera.CFrame.Position
         local newCameraLookVector = (targetPos - cameraPos).Unit
-        local currentLookVector = Camera.CFrame.LookVector
         
-        if Config.SmoothAimEnabled then
-            local smoothLookVector = currentLookVector:Lerp(newCameraLookVector, Config.Sensitivity)
-            Camera.CFrame = CFrame.new(cameraPos, cameraPos + smoothLookVector)
-        else
-            Camera.CFrame = CFrame.new(cameraPos, cameraPos + newCameraLookVector)
-        end
+        -- Directly set the camera to look at the target
+        Camera.CFrame = CFrame.new(cameraPos, cameraPos + newCameraLookVector)
     end
 
     -- Speed toggle movement

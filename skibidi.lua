@@ -1,16 +1,15 @@
-local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TextService = game:GetService("TextService")
-local TweenService = game:GetService("TweenService")
+local a = game:GetService("UserInputService")
+local b = game:GetService("Players")
+local c = game:GetService("RunService")
+local d = game:GetService("ReplicatedStorage")
+local e = game:GetService("TextService")
+local f = game:GetService("TweenService")
 
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
+local g = b.LocalPlayer
+local h = workspace.CurrentCamera
 
--- Configuration
-local Config = {
-    ToggleKey = Enum.KeyCode.C,  -- Keybind set to C
+local i = {
+    ToggleKey = Enum.KeyCode.C,
     MaxDistance = 1000,
     Sensitivity = 0.5,
     AimPart = "HumanoidRootPart",
@@ -20,65 +19,61 @@ local Config = {
     FOVSize = 250,
     FOVSides = 64,
     FOVColor = Color3.fromRGB(255, 255, 255),
-    HighlightColor = Color3.fromRGB(0, 255, 0),  -- Highlight color (green)
+    HighlightColor = Color3.fromRGB(0, 255, 0),
 }
 
-local Enabled = false
-local TargetPlayer = nil
-local FOVCircle = nil
-local HighlightInstance = nil  -- To store the highlight object
-local RainbowText = nil  -- To store the rainbow text
+local j = false
+local k = nil
+local l = nil
+local m = nil
+local n = nil
 
--- Speed toggle configuration
-local SpeedToggleConfig = {
-    BASE_SPEED = 25,    -- Normal speed
-    BOOST_SPEED = 75,   -- Speed when activated
+local o = {
+    BASE_SPEED = 25,
+    BOOST_SPEED = 75,
     TOGGLE_KEY = Enum.KeyCode.V
 }
 
-local isSpeedEnabled = false
-local currentSpeed = SpeedToggleConfig.BASE_SPEED
+local p = false
+local q = o.BASE_SPEED
 
--- Function to check if a player is on the same team
-local function IsTeamMate(player)
-    return Config.TeamCheck and player.Team and player.Team == LocalPlayer.Team
+local function r(s)
+    return i.TeamCheck and s.Team and s.Team == g.Team
 end
 
--- Function to check if a player is visible
-local function IsVisible(part)
-    if not Config.VisibilityCheck then return true end
-    local origin = Camera.CFrame.Position
-    local direction = (part.Position - origin).Unit
-    local raycastParams = RaycastParams.new()
-    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-    raycastParams.FilterDescendantsInstances = {LocalPlayer.Character}
-    local raycastResult = workspace:Raycast(origin, direction * Config.MaxDistance, raycastParams)
-    return raycastResult and raycastResult.Instance:IsDescendantOf(part.Parent)
+local function t(u)
+    if not i.VisibilityCheck then return true end
+    local v = h.CFrame.Position
+    local w = (u.Position - v).Unit
+    local x = RaycastParams.new()
+    x.FilterType = Enum.RaycastFilterType.Blacklist
+    x.FilterDescendantsInstances = {g.Character}
+    local y = workspace:Raycast(v, w * i.MaxDistance, x)
+    return y and y.Instance:IsDescendantOf(u.Parent)
 end
 
--- Function to get the closest player to the cursor
-local function GetClosestPlayerToCursor()
-    local closestPlayer = nil
-    local shortestDistance = Config.MaxDistance
-    local mousePos = UserInputService:GetMouseLocation()
+local function z()
+    local A = nil
+    local B = i.MaxDistance
+    local C = a:GetMouseLocation()
 
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild(Config.AimPart) then
-            if not IsTeamMate(player) and IsVisible(player.Character[Config.AimPart]) then
-                local screenPos, onScreen = Camera:WorldToScreenPoint(player.Character[Config.AimPart].Position)
+    for _, D in pairs(b:GetPlayers()) do
+        if D ~= g and D.Character and D.Character:FindFirstChild(i.AimPart) then
+            if not r(D) and t(D.Character[i.AimPart]) then
+                local E, F = h:WorldToScreenPoint(D.Character[i.AimPart].Position)
                 
-                if onScreen then
-                    local distance = (Vector2.new(mousePos.X, mousePos.Y) - Vector2.new(screenPos.X, screenPos.Y)).Magnitude
+                if F then
+                    local G = (Vector2.new(C.X, C.Y) - Vector2.new(E.X, E.Y)).Magnitude
                     
-                    if Config.FOVEnabled then
-                        if distance <= Config.FOVSize / 2 and distance < shortestDistance then
-                            closestPlayer = player
-                            shortestDistance = distance
+                    if i.FOVEnabled then
+                        if G <= i.FOVSize / 2 and G < B then
+                            A = D
+                            B = G
                         end
                     else
-                        if distance < shortestDistance then
-                            closestPlayer = player
-                            shortestDistance = distance
+                        if G < B then
+                            A = D
+                            B = G
                         end
                     end
                 end
@@ -86,186 +81,163 @@ local function GetClosestPlayerToCursor()
         end
     end
 
-    return closestPlayer
+    return A
 end
 
--- Function to create the FOV circle
-local function CreateFOVCircle()
-    FOVCircle = Drawing.new("Circle")
-    FOVCircle.Thickness = 2
-    FOVCircle.NumSides = Config.FOVSides
-    FOVCircle.Radius = Config.FOVSize / 2
-    FOVCircle.Filled = false
-    FOVCircle.Visible = false
-    FOVCircle.ZIndex = 999
-    FOVCircle.Transparency = 1
-    FOVCircle.Color = Config.FOVColor
+local function H()
+    l = Drawing.new("Circle")
+    l.Thickness = 2
+    l.NumSides = i.FOVSides
+    l.Radius = i.FOVSize / 2
+    l.Filled = false
+    l.Visible = false
+    l.ZIndex = 999
+    l.Transparency = 1
+    l.Color = i.FOVColor
 end
 
--- Function to update the FOV circle
-local function UpdateFOVCircle()
-    if not FOVCircle then return end
-    FOVCircle.Position = UserInputService:GetMouseLocation()
-    FOVCircle.Visible = Config.FOVEnabled and Enabled
+local function I()
+    if not l then return end
+    l.Position = a:GetMouseLocation()
+    l.Visible = i.FOVEnabled and j
 end
 
--- Function to highlight the target
-local function HighlightTarget(player)
-    if HighlightInstance then
-        HighlightInstance:Destroy()  -- Remove existing highlight
-        HighlightInstance = nil
+local function J(D)
+    if m then
+        m:Destroy()
+        m = nil
     end
 
-    if player and player.Character then
-        HighlightInstance = Instance.new("Highlight")
-        HighlightInstance.FillColor = Config.HighlightColor
-        HighlightInstance.OutlineColor = Config.HighlightColor
-        HighlightInstance.Parent = player.Character
+    if D and D.Character then
+        m = Instance.new("Highlight")
+        m.FillColor = i.HighlightColor
+        m.OutlineColor = i.HighlightColor
+        m.Parent = D.Character
     end
 end
 
--- Function to unhighlight the target
-local function UnhighlightTarget()
-    if HighlightInstance then
-        HighlightInstance:Destroy()
-        HighlightInstance = nil
+local function K()
+    if m then
+        m:Destroy()
+        m = nil
     end
 end
 
--- Function to create rainbow text
-local function CreateRainbowText()
-    RainbowText = Drawing.new("Text")
-    RainbowText.Text = "Project Bust Script"
-    RainbowText.Size = 24
-    RainbowText.Center = true
-    RainbowText.Outline = true
-    RainbowText.OutlineColor = Color3.new(0, 0, 0)
-    RainbowText.Color = Color3.new(1, 1, 1)
-    RainbowText.Position = Vector2.new(Camera.ViewportSize.X / 2, 50)
-    RainbowText.Visible = true
+local function L()
+    n = Drawing.new("Text")
+    n.Text = "Project Bust Script"
+    n.Size = 24
+    n.Center = true
+    n.Outline = true
+    n.OutlineColor = Color3.new(0, 0, 0)
+    n.Color = Color3.new(1, 1, 1)
+    n.Position = Vector2.new(h.ViewportSize.X / 2, 50)
+    n.Visible = true
 end
 
--- Function to update rainbow text color
-local function UpdateRainbowText()
-    if not RainbowText then return end
-    local hue = tick() % 5 / 5
-    RainbowText.Color = Color3.fromHSV(hue, 1, 1)
+local function M()
+    if not n then return end
+    local N = tick() % 5 / 5
+    n.Color = Color3.fromHSV(N, 1, 1)
 end
 
--- Create the FOV circle
-CreateFOVCircle()
+H()
+L()
 
--- Create the rainbow text
-CreateRainbowText()
-
--- Toggle function
-local function ToggleCamlock()
-    Enabled = not Enabled
-    if Enabled then
-        TargetPlayer = GetClosestPlayerToCursor()
-        if TargetPlayer then
-            HighlightTarget(TargetPlayer)  -- Highlight the target
-            print("Camlock enabled on player: " .. TargetPlayer.Name)
+local function O()
+    j = not j
+    if j then
+        k = z()
+        if k then
+            J(k)
+            print("Camlock enabled on player: " .. k.Name)
         else
             print("Camlock enabled, but no target found")
         end
     else
-        UnhighlightTarget()  -- Unhighlight the target
-        TargetPlayer = nil
+        K()
+        k = nil
         print("Camlock disabled")
     end
 end
 
--- Speed toggle function
-local function ToggleSpeed()
-    isSpeedEnabled = not isSpeedEnabled
-    currentSpeed = isSpeedEnabled and SpeedToggleConfig.BOOST_SPEED or SpeedToggleConfig.BASE_SPEED
-    print("Speed toggled: " .. (isSpeedEnabled and "ON" or "OFF"))
+local function P()
+    p = not p
+    q = p and o.BOOST_SPEED or o.BASE_SPEED
+    print("Speed toggled: " .. (p and "ON" or "OFF"))
 end
 
--- Input handling
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed then
-        if input.KeyCode == Config.ToggleKey then
-            ToggleCamlock()
-        elseif input.KeyCode == SpeedToggleConfig.TOGGLE_KEY then
-            ToggleSpeed()
+a.InputBegan:Connect(function(Q, R)
+    if not R then
+        if Q.KeyCode == i.ToggleKey then
+            O()
+        elseif Q.KeyCode == o.TOGGLE_KEY then
+            P()
         end
     end
 end)
 
--- Main update loop
-RunService.RenderStepped:Connect(function(deltaTime)
-    UpdateFOVCircle()
-    UpdateRainbowText()
+c.RenderStepped:Connect(function(S)
+    I()
+    M()
     
-    if Enabled and TargetPlayer and TargetPlayer.Character and TargetPlayer.Character:FindFirstChild(Config.AimPart) then
-        local targetPart = TargetPlayer.Character[Config.AimPart]
-        local targetPos = targetPart.Position
+    if j and k and k.Character and k.Character:FindFirstChild(i.AimPart) then
+        local T = k.Character[i.AimPart]
+        local U = T.Position
         
-        local cameraPos = Camera.CFrame.Position
-        local newCameraLookVector = (targetPos - cameraPos).Unit
+        local V = h.CFrame.Position
+        local W = (U - V).Unit
         
-        -- Directly set the camera to look at the target
-        Camera.CFrame = CFrame.new(cameraPos, cameraPos + newCameraLookVector)
+        h.CFrame = CFrame.new(V, V + W)
     end
 
-    -- Speed toggle movement
-    if isSpeedEnabled then
-        local moveDirection = Vector3.new()
+    if p then
+        local X = Vector3.new()
         
-        -- Get input direction
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-            moveDirection = moveDirection + (workspace.CurrentCamera.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit
+        if a:IsKeyDown(Enum.KeyCode.W) then
+            X = X + (h.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit
         end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-            moveDirection = moveDirection - (workspace.CurrentCamera.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit
+        if a:IsKeyDown(Enum.KeyCode.S) then
+            X = X - (h.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit
         end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-            moveDirection = moveDirection - (workspace.CurrentCamera.CFrame.RightVector * Vector3.new(1, 0, 1)).Unit
+        if a:IsKeyDown(Enum.KeyCode.A) then
+            X = X - (h.CFrame.RightVector * Vector3.new(1, 0, 1)).Unit
         end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-            moveDirection = moveDirection + (workspace.CurrentCamera.CFrame.RightVector * Vector3.new(1, 0, 1)).Unit
+        if a:IsKeyDown(Enum.KeyCode.D) then
+            X = X + (h.CFrame.RightVector * Vector3.new(1, 0, 1)).Unit
         end
         
-        -- Apply movement
-        if moveDirection.Magnitude > 0 then
-            moveDirection = moveDirection.Unit
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                LocalPlayer.Character.HumanoidRootPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame + (moveDirection * currentSpeed * deltaTime)
+        if X.Magnitude > 0 then
+            X = X.Unit
+            if g.Character and g.Character:FindFirstChild("HumanoidRootPart") then
+                g.Character.HumanoidRootPart.CFrame = g.Character.HumanoidRootPart.CFrame + (X * q * S)
             end
         end
     end
 end)
 
--- Expose configuration to ReplicatedStorage for easy adjustment
-local ConfigValues = Instance.new("Folder")
-ConfigValues.Name = "CamlockConfig"
-ConfigValues.Parent = ReplicatedStorage
+local Y = Instance.new("Folder")
+Y.Name = "CamlockConfig"
+Y.Parent = d
 
-for key, value in pairs(Config) do
-    local valueObject = Instance.new(typeof(value) == "boolean" and "BoolValue" or "NumberValue")
-    valueObject.Name = key
-    valueObject.Value = value
-    valueObject.Parent = ConfigValues
+for Z, _ in pairs(i) do
+    local aa = Instance.new(typeof(_) == "boolean" and "BoolValue" or "NumberValue")
+    aa.Name = Z
+    aa.Value = _
+    aa.Parent = Y
 end
 
--- Function to update configuration
-local function UpdateConfig(key, value)
-    Config[key] = value
-    if ConfigValues:FindFirstChild(key) then
-        ConfigValues[key].Value = value
+local function ab(Z, _)
+    i[Z] = _
+    if Y:FindFirstChild(Z) then
+        Y[Z].Value = _
     end
     
-    if key == "FOVSize" then
-        FOVCircle.Radius = value / 2
-    elseif key == "FOVSides" then
-        FOVCircle.NumSides = value
-    elseif key == "FOVColor" then
-        FOVCircle.Color = value
+    if Z == "FOVSize" then
+        l.Radius = _ / 2
+    elseif Z == "FOVSides" then
+        l.NumSides = _
+    elseif Z == "FOVColor" then
+        l.Color = _
     end
 end
-
--- Example usage:
--- UpdateConfig("Sensitivity", 0.7)
--- UpdateConfig("FOVSize", 300)

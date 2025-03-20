@@ -1,20 +1,14 @@
 --[[
-
-	Aimbot Module [AirHub] by Rexy
-
-
+	Camlock Module by Rexy
 ]]
 
 --// Cache
-
-local pcall, getgenv, next, setmetatable, Vector2new, CFramenew, Color3fromRGB, Drawingnew, TweenInfonew, stringupper, mousemoverel = pcall, getgenv, next, setmetatable, Vector2.new, CFrame.new, Color3.fromRGB, Drawing.new, TweenInfo.new, string.upper, mousemoverel or (Input and Input.MouseMove)
+local pcall, getgenv, next, setmetatable, Vector2new, CFramenew, Color3fromRGB, Drawingnew, TweenInfonew, stringupper = pcall, getgenv, next, setmetatable, Vector2.new, CFrame.new, Color3.fromRGB, Drawing.new, TweenInfo.new, string.upper
 
 --// Launching checks
-
-if not getgenv().AirHub or getgenv().AirHub.Aimbot then return end
+if not getgenv().AirHub or getgenv().AirHub.Camlock then return end
 
 --// Services
-
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -23,20 +17,16 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 --// Variables
-
-local RequiredDistance, Typing, Running, ServiceConnections, Animation, OriginalSensitivity = 2000, false, false, {}
+local RequiredDistance, Typing, Running, ServiceConnections, Animation = 2000, false, false, {}
 
 --// Environment
-
-getgenv().AirHub.Aimbot = {
+getgenv().AirHub.Camlock = {
 	Settings = {
 		Enabled = false,
 		TeamCheck = false,
 		AliveCheck = true,
 		WallCheck = false,
 		Sensitivity = 0, -- Animation length (in seconds) before fully locking onto target
-		ThirdPerson = false, -- Uses mousemoverel instead of CFrame to support locking in third person (could be choppy)
-		ThirdPersonSensitivity = 3,
 		TriggerKey = "MouseButton2",
 		Toggle = false,
 		LockPart = "Head" -- Body part to lock on
@@ -57,10 +47,9 @@ getgenv().AirHub.Aimbot = {
 	FOVCircle = Drawingnew("Circle")
 }
 
-local Environment = getgenv().AirHub.Aimbot
+local Environment = getgenv().AirHub.Camlock
 
 --// Core Functions
-
 local function ConvertVector(Vector)
 	return Vector2new(Vector.X, Vector.Y)
 end
@@ -68,7 +57,6 @@ end
 local function CancelLock()
 	Environment.Locked = nil
 	Environment.FOVCircle.Color = Environment.FOVSettings.Color
-	UserInputService.MouseDeltaSensitivity = OriginalSensitivity
 
 	if Animation then
 		Animation:Cancel()
@@ -100,8 +88,6 @@ local function GetClosestPlayer()
 end
 
 local function Load()
-	OriginalSensitivity = UserInputService.MouseDeltaSensitivity
-
 	ServiceConnections.RenderSteppedConnection = RunService.RenderStepped:Connect(function()
 		if Environment.FOVSettings.Enabled and Environment.Settings.Enabled then
 			Environment.FOVCircle.Radius = Environment.FOVSettings.Amount
@@ -120,19 +106,11 @@ local function Load()
 			GetClosestPlayer()
 
 			if Environment.Locked then
-				if Environment.Settings.ThirdPerson then
-					local Vector = Camera:WorldToViewportPoint(Environment.Locked.Character[Environment.Settings.LockPart].Position)
-
-					mousemoverel((Vector.X - UserInputService:GetMouseLocation().X) * Environment.Settings.ThirdPersonSensitivity, (Vector.Y - UserInputService:GetMouseLocation().Y) * Environment.Settings.ThirdPersonSensitivity)
+				if Environment.Settings.Sensitivity > 0 then
+					Animation = TweenService:Create(Camera, TweenInfonew(Environment.Settings.Sensitivity, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {CFrame = CFramenew(Camera.CFrame.Position, Environment.Locked.Character[Environment.Settings.LockPart].Position)})
+					Animation:Play()
 				else
-					if Environment.Settings.Sensitivity > 0 then
-						Animation = TweenService:Create(Camera, TweenInfonew(Environment.Settings.Sensitivity, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {CFrame = CFramenew(Camera.CFrame.Position, Environment.Locked.Character[Environment.Settings.LockPart].Position)})
-						Animation:Play()
-					else
-						Camera.CFrame = CFramenew(Camera.CFrame.Position, Environment.Locked.Character[Environment.Settings.LockPart].Position)
-					end
-
-					UserInputService.MouseDeltaSensitivity = 0
+					Camera.CFrame = CFramenew(Camera.CFrame.Position, Environment.Locked.Character[Environment.Settings.LockPart].Position)
 				end
 
 				Environment.FOVCircle.Color = Environment.FOVSettings.LockedColor
@@ -172,7 +150,6 @@ local function Load()
 end
 
 --// Typing Check
-
 ServiceConnections.TypingStartedConnection = UserInputService.TextBoxFocused:Connect(function()
 	Typing = true
 end)
@@ -182,7 +159,6 @@ ServiceConnections.TypingEndedConnection = UserInputService.TextBoxFocusReleased
 end)
 
 --// Functions
-
 Environment.Functions = {}
 
 function Environment.Functions:Exit()
@@ -192,8 +168,8 @@ function Environment.Functions:Exit()
 
 	Environment.FOVCircle:Remove()
 
-	getgenv().AirHub.Aimbot.Functions = nil
-	getgenv().AirHub.Aimbot = nil
+	getgenv().AirHub.Camlock.Functions = nil
+	getgenv().AirHub.Camlock = nil
 
 	Load = nil; ConvertVector = nil; CancelLock = nil; GetClosestPlayer = nil;
 end
@@ -213,8 +189,6 @@ function Environment.Functions:ResetSettings()
 		AliveCheck = true,
 		WallCheck = false,
 		Sensitivity = 0, -- Animation length (in seconds) before fully locking onto target
-		ThirdPerson = false, -- Uses mousemoverel instead of CFrame to support locking in third person (could be choppy)
-		ThirdPersonSensitivity = 3,
 		TriggerKey = "MouseButton2",
 		Toggle = false,
 		LockPart = "Head" -- Body part to lock on
@@ -238,5 +212,4 @@ setmetatable(Environment.Functions, {
 })
 
 --// Load
-
 Load()
